@@ -32,10 +32,12 @@ if __name__ == "__main__":
             with open(pdf, 'rb') as f:
                 try:
                     pages = PdfReader(f).pages
+                    if len(pages) == 1:
+                        continue
                     min_ID = min(findall(PATTERN, pages[0].extract_text()))
                     max_ID = max(findall(PATTERN, pages[-1].extract_text()))
                 except:
-                    raise RuntimError("Failed to parse PDF: %s" % pdf)
+                    raise RuntimeError("Failed to parse PDF: %s" % pdf)
             if min_ID != max_ID:
                 dest = pdf.parent / ('%s_%s.pdf' % (min_ID, max_ID))
                 if not dest.exists():
