@@ -1,5 +1,6 @@
 # files related to this project
 *.pdf
+attempt_urls.txt
 cookies.json
 headers.json
 tmp/
