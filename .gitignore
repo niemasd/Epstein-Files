@@ -1,4 +1,5 @@
 # files related to this project
+*.pdf
 tmp/
 
 # Byte-compiled / optimized / DLL files
