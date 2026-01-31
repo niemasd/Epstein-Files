@@ -16,13 +16,14 @@ Download all EFTA files listed in a text file. To get the "cookies.json" file:
 # imports
 from ast import literal_eval
 from io import BytesIO
-from multiprocessing import Pool
+from multiprocessing import Manager, Pool
 from pathlib import Path
 from pypdf import PdfReader
 from re import findall
 from requests import get
 from tqdm import tqdm
 from sys import stderr
+from warnings import warn
 import argparse
 
 # constants
@@ -54,7 +55,10 @@ def get_url(efta):
     raise ValueError("Unable to determine document URL: %s" % efta)
 
 # download a given file
-def download_file(url):
+def download_efta(efta, DONE):
+    if efta in DONE:
+        return
+    url = get_url(efta)
     curr_out_path = OUT_PATH / Path(url).name
     response = get(url, cookies=COOKIES)
     done = {curr_out_path.name, curr_out_path.stem}
@@ -68,10 +72,12 @@ def download_file(url):
                 for i in range(int(min_ID[4:]), int(max_ID[4:])+1):
                     tmp = 'EFTA' + str(i).zfill(8); done.add(tmp); done.add(tmp + '.pdf')
         except:
-            raise RuntimeError("Failed to download %s from: %s" % (efta, url))
+            warn("Failed to download %s from: %s" % (efta, url)); return
     with open(curr_out_path, 'wb') as f:
         f.write(response.content)
-    return done
+    for finished_efta in done:
+        DONE[finished_efta] = None
+    return url
 
 # run script
 if __name__ == "__main__":
@@ -80,7 +86,7 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--input', required=True, type=str, help="Input TXT with EFTA Numbers")
     parser.add_argument('-c', '--cookies', required=True, type=str, help="Input Cookies JSON")
     parser.add_argument('-o', '--output', required=True, type=str, help="Output Download Directory")
-    parser.add_argument('-t', '--num_threads', required=False, type=int, default=32, help="Number of Threads for Downloading")
+    parser.add_argument('-t', '--num_threads', required=False, type=int, default=8, help="Number of Threads for Downloading")
     parser.add_argument('-u', '--print_urls', action='store_true', help="Print Successful URLs to Standard Output")
     args = parser.parse_args()
     args.input = Path(args.input)
@@ -108,10 +114,9 @@ if __name__ == "__main__":
     # download files and print their URLs to standard output
     global OUT_PATH; OUT_PATH = args.output # so each process has access to it
     done = set()
-    for efta in tqdm(eftas):
-        if efta in done:
-            continue
-        url = get_url(efta)
-        done |= download_file(url)
-        if args.print_urls:
-            print(url)
+    with Manager() as manager:
+        DONE = manager.dict()
+        with Pool(processes=args.num_threads) as pool:
+            for url in tqdm(pool.starmap(download_efta, ((efta, DONE) for efta in eftas)), total=len(eftas)):
+                if url is not None and args.print_urls:
+                    print(url)
