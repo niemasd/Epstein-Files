@@ -1,5 +1,7 @@
 # files related to this project
 *.pdf
+cookies.json
+headers.json
 tmp/
 
 # Byte-compiled / optimized / DLL files

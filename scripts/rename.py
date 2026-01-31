@@ -5,7 +5,6 @@ Rename all EFTA files from FIRSTEFTA.pdf to FIRSTEFTA_LASTEFTA.pdf
 from pathlib import Path
 from pypdf import PdfReader
 from re import findall
-from subprocess import check_output
 from tqdm import tqdm
 from sys import argv, stderr
 PATTERN = 'EFTA[0-9]{8}'
