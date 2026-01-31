@@ -30,9 +30,12 @@ if __name__ == "__main__":
         fn = pdf.name
         if fn.count('EFTA') == 1:
             with open(pdf, 'rb') as f:
-                pages = PdfReader(f).pages
-                min_ID = min(findall(PATTERN, pages[0].extract_text()))
-                max_ID = max(findall(PATTERN, pages[-1].extract_text()))
+                try:
+                    pages = PdfReader(f).pages
+                    min_ID = min(findall(PATTERN, pages[0].extract_text()))
+                    max_ID = max(findall(PATTERN, pages[-1].extract_text()))
+                except:
+                    raise RuntimError("Failed to parse PDF: %s" % pdf)
             if min_ID != max_ID:
                 dest = pdf.parent / ('%s_%s.pdf' % (min_ID, max_ID))
                 if not dest.exists():
