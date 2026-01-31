@@ -47,7 +47,7 @@ FIRST_DOC = [
 # return the URL from an EFTA string
 def get_url(efta):
     for dataset_num, efta_start in sorted(FIRST_DOC, key=lambda x: x[1], reverse=True):
-        if efta_start < efta:
+        if efta_start <= efta:
             url = URL_BASE + dataset_num + '/' + efta
             if '.' not in efta: # assume missing extension == PDF
                 url += '.pdf'
