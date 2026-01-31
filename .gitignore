@@ -1,3 +1,6 @@
+# files related to this project
+tmp/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
