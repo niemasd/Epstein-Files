@@ -16,12 +16,14 @@ Download all EFTA files listed in a text file. To get the "cookies.json" file:
 # imports
 from ast import literal_eval
 from io import BytesIO
+from multiprocessing import Pool
 from pathlib import Path
 from pypdf import PdfReader
 from re import findall
 from requests import get
 from tqdm import tqdm
-from sys import argv, stderr
+from sys import stderr
+import argparse
 
 # constants
 PATTERN = 'EFTA[0-9]{8}'
@@ -51,51 +53,65 @@ def get_url(efta):
             return url
     raise ValueError("Unable to determine document URL: %s" % efta)
 
+# download a given file
+def download_file(url):
+    curr_out_path = OUT_PATH / Path(url).name
+    response = get(url, cookies=COOKIES)
+    done = {curr_out_path.name, curr_out_path.stem}
+    if curr_out_path.suffix.lower().strip() == '.pdf':
+        try:
+            pages = PdfReader(BytesIO(response.content)).pages
+            if len(pages) > 1:
+                min_ID = min(findall(PATTERN, pages[0].extract_text()))
+                max_ID = max(findall(PATTERN, pages[-1].extract_text()))
+                curr_out_path = OUT_PATH / ('%s_%s.pdf' % (min_ID, max_ID))
+                for i in range(int(min_ID[4:]), int(max_ID[4:])+1):
+                    tmp = 'EFTA' + str(i).zfill(8); done.add(tmp); done.add(tmp + '.pdf')
+        except:
+            raise RuntimeError("Failed to download %s from: %s" % (efta, url))
+    with open(curr_out_path, 'wb') as f:
+        f.write(response.content)
+    return done
+
 # run script
 if __name__ == "__main__":
     # parse user args
-    if len(argv) != 4:
-        print("USAGE: %s <eftas.txt> <out_dir> <cookies.json>" % argv[0], file=stderr); exit(1)
-    efta_path = Path(argv[1])
-    out_path = Path(argv[2])
-    cookies_path = Path(argv[3])
-    for path in [efta_path, cookies_path]:
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-i', '--input', required=True, type=str, help="Input TXT with EFTA Numbers")
+    parser.add_argument('-c', '--cookies', required=True, type=str, help="Input Cookies JSON")
+    parser.add_argument('-o', '--output', required=True, type=str, help="Output Download Directory")
+    parser.add_argument('-t', '--num_threads', required=False, type=int, default=32, help="Number of Threads for Downloading")
+    parser.add_argument('-u', '--print_urls', action='store_true', help="Print Successful URLs to Standard Output")
+    args = parser.parse_args()
+    args.input = Path(args.input)
+    args.cookies = Path(args.cookies)
+    args.output = Path(args.output)
+    for path in [args.input, args.cookies]:
         if not path.is_file():
             raise ValueError("File not found: %s" % path)
-    if not out_path.is_dir():
-        raise ValueError("Directory not found: %s" % out_path)
+    if not args.output.is_dir():
+        raise ValueError("Directory not found: %s" % args.output)
+    if args.num_threads < 1:
+        raise ValueError("Number of threads must be positive: %s" % args.num_threads)
 
     # load EFTA list
-    with open(efta_path, 'rt') as f:
+    with open(args.input, 'rt') as f:
         eftas = sorted({s.strip() for s in f.read().strip().split()})
 
     # load cookies
-    with open(cookies_path, 'rt') as f:
+    with open(args.cookies, 'rt') as f:
         cookies_data = f.read().strip()
     if cookies_data.startswith('cookies'):
         cookies_data = '='.join(cookies_data.split('=')[1:]).strip()
-    cookies = literal_eval(cookies_data)
+    global COOKIES; COOKIES = literal_eval(cookies_data)
 
     # download files and print their URLs to standard output
+    global OUT_PATH; OUT_PATH = args.output # so each process has access to it
     done = set()
     for efta in tqdm(eftas):
         if efta in done:
             continue
         url = get_url(efta)
-        curr_out_path = out_path / Path(url).name
-        response = get(url, cookies=cookies)
-        if curr_out_path.suffix.lower().strip() == '.pdf':
-            try:
-                pages = PdfReader(BytesIO(response.content)).pages
-                if len(pages) > 1:
-                    min_ID = min(findall(PATTERN, pages[0].extract_text()))
-                    max_ID = max(findall(PATTERN, pages[-1].extract_text()))
-                    curr_out_path = out_path / ('%s_%s.pdf' % (min_ID, max_ID))
-                    for i in range(int(min_ID[4:]), int(max_ID[4:])+1):
-                        tmp = 'EFTA' + str(i).zfill(8)
-                        done.add(tmp); done.add(tmp + '.pdf')
-            except:
-                raise RuntimeError("Failed to download %s from: %s" % (efta, url))
-        print(url); done.add(curr_out_path.name); done.add(curr_out_path.stem)
-        with open(curr_out_path, 'wb') as f:
-            f.write(response.content)
+        done |= download_file(url)
+        if args.print_urls:
+            print(url)
