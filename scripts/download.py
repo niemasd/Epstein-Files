@@ -21,7 +21,6 @@ from pathlib import Path
 from pypdf import PdfReader
 from re import findall
 from requests import get
-from tqdm import tqdm
 from sys import stderr
 from warnings import warn
 import argparse
@@ -72,7 +71,7 @@ def download_efta(efta, DONE):
                 for i in range(int(min_ID[4:]), int(max_ID[4:])+1):
                     tmp = 'EFTA' + str(i).zfill(8); done.add(tmp); done.add(tmp + '.pdf')
         except:
-            warn("Failed to download %s from: %s" % (efta, url)); return
+            warn("Failed to download %s from: %s" % (efta, url)); return None
     with open(curr_out_path, 'wb') as f:
         f.write(response.content)
     for finished_efta in done:
@@ -86,7 +85,7 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--input', required=True, type=str, help="Input TXT with EFTA Numbers")
     parser.add_argument('-c', '--cookies', required=True, type=str, help="Input Cookies JSON")
     parser.add_argument('-o', '--output', required=True, type=str, help="Output Download Directory")
-    parser.add_argument('-t', '--num_threads', required=False, type=int, default=8, help="Number of Threads for Downloading")
+    parser.add_argument('-t', '--threads', required=False, type=int, default=16, help="Number of Threads for Downloading")
     parser.add_argument('-u', '--print_urls', action='store_true', help="Print Successful URLs to Standard Output")
     args = parser.parse_args()
     args.input = Path(args.input)
@@ -97,14 +96,17 @@ if __name__ == "__main__":
             raise ValueError("File not found: %s" % path)
     if not args.output.is_dir():
         raise ValueError("Directory not found: %s" % args.output)
-    if args.num_threads < 1:
-        raise ValueError("Number of threads must be positive: %s" % args.num_threads)
+    if args.threads < 1:
+        raise ValueError("Number of threads must be positive: %s" % args.threads)
 
     # load EFTA list
+    print("Loading EFTA list from: %s" % args.input, file=stderr)
     with open(args.input, 'rt') as f:
         eftas = sorted({s.strip() for s in f.read().strip().split()})
+    print("Successfully loaded %d EFTA IDs" % len(eftas), file=stderr)
 
     # load cookies
+    print("Loading cookies from: %s" % args.cookies, file=stderr)
     with open(args.cookies, 'rt') as f:
         cookies_data = f.read().strip()
     if cookies_data.startswith('cookies'):
@@ -112,11 +114,11 @@ if __name__ == "__main__":
     global COOKIES; COOKIES = literal_eval(cookies_data)
 
     # download files and print their URLs to standard output
+    print("Downloading EFTA files...", file=stderr)
     global OUT_PATH; OUT_PATH = args.output # so each process has access to it
-    done = set()
     with Manager() as manager:
         DONE = manager.dict()
-        with Pool(processes=args.num_threads) as pool:
-            for url in tqdm(pool.starmap(download_efta, ((efta, DONE) for efta in eftas)), total=len(eftas)):
-                if url is not None and args.print_urls:
+        with Pool(processes=args.threads) as pool:
+            for url in pool.starmap(download_efta, ((efta, DONE) for efta in eftas)):
+                if args.print_urls and url is not None:
                     print(url)
