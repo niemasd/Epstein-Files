@@ -5,7 +5,7 @@ Remove all failed downloads
 from pathlib import Path
 from sys import argv, stderr
 from tqdm import tqdm
-PREFIXES = {b'<HTML><HEAD>\n', b'\n\n<!DOCTYPE html>\n'
+PREFIXES = [b'<HTML><HEAD>\n', b'\n\n<!DOCTYPE html>\n']
 
 # run script
 if __name__ == "__main__":
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     # remove all empty-looking files
     for pdf in tqdm(path.rglob('EFTA*.*')):
         with open(pdf, 'rb') as f:
-            prefix = f.read(13)
+            prefix = f.read(100)
         delete = False
         if len(prefix) == 0:
             delete = True
