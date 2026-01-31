@@ -79,18 +79,23 @@ if __name__ == "__main__":
     # download files and print their URLs to standard output
     done = set()
     for efta in tqdm(eftas):
+        if efta in done:
+            continue
         url = get_url(efta)
         curr_out_path = out_path / Path(url).name
         response = get(url, cookies=cookies)
-        if curr_out_path.stem.lower().strip() == '.pdf':
+        if curr_out_path.suffix.lower().strip() == '.pdf':
             try:
                 pages = PdfReader(BytesIO(response.content)).pages
                 if len(pages) > 1:
                     min_ID = min(findall(PATTERN, pages[0].extract_text()))
                     max_ID = max(findall(PATTERN, pages[-1].extract_text()))
                     curr_out_path = out_path / ('%s_%s.pdf' % (min_ID, max_ID))
+                    for i in range(int(min_ID[4:]), int(max_ID[4:])+1):
+                        tmp = 'EFTA' + str(i).zfill(8)
+                        done.add(tmp); done.add(tmp + '.pdf')
             except:
                 raise RuntimeError("Failed to download %s from: %s" % (efta, url))
-        print(url)
+        print(url); done.add(curr_out_path.name); done.add(curr_out_path.stem)
         with open(curr_out_path, 'wb') as f:
             f.write(response.content)
