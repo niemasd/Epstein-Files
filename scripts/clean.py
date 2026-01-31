@@ -5,8 +5,7 @@ Remove all failed downloads
 from pathlib import Path
 from sys import argv, stderr
 from tqdm import tqdm
-PREFIX = b'<HTML><HEAD>\n'
-PREFIX_LEN = len(PREFIX)
+PREFIXES = {b'<HTML><HEAD>\n', b'\n\n<!DOCTYPE html>\n'
 
 # run script
 if __name__ == "__main__":
@@ -21,5 +20,12 @@ if __name__ == "__main__":
     for pdf in tqdm(path.rglob('EFTA*.*')):
         with open(pdf, 'rb') as f:
             prefix = f.read(13)
-        if len(prefix) < PREFIX_LEN or prefix == PREFIX:
+        delete = False
+        if len(prefix) == 0:
+            delete = True
+        else:
+            for PREFIX in PREFIXES:
+                if prefix.startswith(PREFIX):
+                    delete = True
+        if delete:
             pdf.unlink()
