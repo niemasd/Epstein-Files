@@ -22,7 +22,7 @@ FIRST_DOC = [
 
 # get URL from EFTA########.pdf path
 def get_url(pdf_path):
-    efta = pdf_path.stem.strip().upper()
+    efta = pdf_path.stem.split('_')[0].strip().upper()
     for dataset_num, efta_start in sorted(FIRST_DOC, key=lambda x: x[1], reverse=True):
         if efta_start <= efta:
             return URL_BASE + dataset_num + '/' + efta + '.pdf'
