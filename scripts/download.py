@@ -85,7 +85,7 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--input', required=True, type=str, help="Input TXT with EFTA Numbers")
     parser.add_argument('-c', '--cookies', required=True, type=str, help="Input Cookies JSON")
     parser.add_argument('-o', '--output', required=True, type=str, help="Output Download Directory")
-    parser.add_argument('-t', '--threads', required=False, type=int, default=16, help="Number of Threads for Downloading")
+    parser.add_argument('-t', '--threads', required=False, type=int, default=8, help="Number of Threads for Downloading")
     parser.add_argument('-u', '--print_urls', action='store_true', help="Print Successful URLs to Standard Output")
     args = parser.parse_args()
     args.input = Path(args.input)
