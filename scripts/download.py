@@ -56,7 +56,7 @@ def get_url(efta):
 
 # download a given file
 def download_efta(efta, DONE):
-    sleep(1) # avoid rate limits
+    sleep(0.5) # avoid rate limits
     if efta in DONE:
         return
     url = get_url(efta)
