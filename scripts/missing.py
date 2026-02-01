@@ -67,7 +67,7 @@ if __name__ == "__main__":
     # enumerate all possible EFTA numbers
     print("Determining all possible EFTA numbers...")
     if args.exhaustive:
-        possible_nums = range(1, max(efta_nums) + 1)
+        possible_nums = range(1, max(BOUNDS[-1][2], max(efta_nums)) + 1)
     else:
         possible_nums = sorted({num for dataset, start, end in BOUNDS for num in range(int(start.replace('EFTA','')), int(end.replace('EFTA','')) + 1)})
 
