@@ -69,7 +69,7 @@ if __name__ == "__main__":
     if args.exhaustive:
         possible_nums = range(1, max(efta_nums) + 1)
     else:
-        possible_nums = {num for dataset, start, end in BOUNDS for num in range(int(start.replace('EFTA','')), int(end.replace('EFTA','')) + 1)}
+        possible_nums = sorted({num for dataset, start, end in BOUNDS for num in range(int(start.replace('EFTA','')), int(end.replace('EFTA','')) + 1)})
 
     # print missing EFTA numbers
     if args.output == 'stdout':
