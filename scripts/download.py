@@ -56,11 +56,11 @@ def get_url(efta):
 
 # download a given file
 def download_efta(efta, DONE):
+    sleep(1) # avoid rate limits
     if efta in DONE:
         return
     url = get_url(efta)
     curr_out_path = OUT_PATH / Path(url).name
-    sleep(1) # avoid rate limits
     response = get(url, cookies=COOKIES, timeout=10)
     done = {curr_out_path.name, curr_out_path.stem}
     if curr_out_path.suffix.lower().strip() == '.pdf':
