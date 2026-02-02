@@ -4,7 +4,7 @@ Rename all EFTA files from FIRSTEFTA.pdf to FIRSTEFTA_LASTEFTA.pdf
 '''
 from pathlib import Path
 from pypdf import PdfReader
-from re import findall
+from re import findall, fullmatch
 from tqdm import tqdm
 from sys import argv, stderr
 PATTERN = 'EFTA[0-9]{8}'
@@ -32,7 +32,10 @@ if __name__ == "__main__":
                     pages = PdfReader(f).pages
                     if len(pages) == 1:
                         continue
-                    min_ID = min(findall(PATTERN, pages[0].extract_text()))
+                    if fullmatch(PATTERN, pdf.stem) is None:
+                        min_ID = min(findall(PATTERN, pages[0].extract_text()))
+                    else:
+                        min_ID = pdf.stem
                     max_ID = max(findall(PATTERN, pages[-1].extract_text()))
                 except:
                     raise RuntimeError("Failed to parse PDF: %s" % pdf)
