@@ -27,6 +27,7 @@ if __name__ == "__main__":
     for dir_path in paths:
         print("Finding EFTA files in: %s" % dir_path, file=stderr)
         efta_file_paths += list(tqdm(dir_path.rglob('EFTA*.pdf')))
+    efta_file_paths.sort()
 
     # get all EFTA numbers that are in the dataset
     efta_nums = set()
