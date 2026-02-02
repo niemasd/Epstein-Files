@@ -17,7 +17,7 @@ if __name__ == "__main__":
         print("Folder not found: %s" % argv[1], file=stderr); exit(1)
 
     # remove all empty-looking files
-    print("Searching for EFTA*.* files in: %s" % path)
+    print("Cleaning EFTA*.* files in: %s" % path)
     for pdf in tqdm(list(path.rglob('EFTA*.*'))):
         with open(pdf, 'rb') as f:
             prefix = f.read(100)
