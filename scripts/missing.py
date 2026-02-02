@@ -31,7 +31,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-o', '--output', type=str, required=False, default='stdout', help="Output File")
     parser.add_argument('-p', '--check_pdf', action='store_true', help="Check PDF Lengths (slow)")
-    parser.add_argument('-e', '--exhaustive', action='store_true', help="Exhaustively List EFTAs from 1 to Max")
     parser.add_argument('file_dir', nargs='*', help="Directories Containing EFTA######## Files")
     args = parser.parse_args()
     paths = [Path(d) for d in args.file_dir]
@@ -64,14 +63,8 @@ if __name__ == "__main__":
         if size_pre + len(curr_nums) != size_post:
             print("\n\nERROR: Overlapping EFTA numbers: %s" % p, file=stderr); exit(1)
 
-    # enumerate all possible EFTA numbers
-    print("Determining all possible EFTA numbers...")
-    if args.exhaustive:
-        possible_nums = range(1, max(int(BOUNDS[-1][2].replace('EFTA','')), max(efta_nums)) + 1)
-    else:
-        possible_nums = sorted({num for dataset, start, end in BOUNDS for num in range(int(start.replace('EFTA','')), int(end.replace('EFTA','')) + 1)})
-
     # print missing EFTA numbers
+    possible_nums = range(1, max(int(BOUNDS[-1][2].replace('EFTA','')), max(efta_nums)) + 1)
     if args.output == 'stdout':
         from sys import stdout as out_file
     elif args.output.strip().lower().endswith('.gz'):
