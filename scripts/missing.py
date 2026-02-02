@@ -8,7 +8,7 @@ from pypdf import PdfReader
 from sys import stderr
 from tqdm import tqdm
 import argparse
-MAX_EFTA = 02731789
+MAX_EFTA = 2731789
 
 # run script
 if __name__ == "__main__":
