@@ -26,8 +26,7 @@ if __name__ == "__main__":
     # rename the files
     print("Renaming files...")
     for pdf in tqdm(efta_file_paths):
-        fn = pdf.name
-        if fn.count('EFTA') == 1:
+        if pdf.name.count('EFTA') == 1:
             with open(pdf, 'rb') as f:
                 try:
                     pages = PdfReader(f).pages
