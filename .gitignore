@@ -1,8 +1,7 @@
 # files related to this project
+*.json
 *.pdf
-attempt_urls.txt
-cookies.json
-headers.json
+*.txt
 tmp/
 
 # Byte-compiled / optimized / DLL files
