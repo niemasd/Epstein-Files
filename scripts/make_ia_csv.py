@@ -2,7 +2,7 @@
 '''
 Make a CSV file for an Internet Archive upload
 '''
-from gzip import open as goen
+from gzip import open as gopen
 from pathlib import Path
 from sys import stderr
 from tqdm import tqdm
