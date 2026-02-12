@@ -33,11 +33,14 @@ if __name__ == "__main__":
     efta_nums = set()
     print("Searching for missing EFTA files...", file=stderr)
     for p in tqdm(efta_file_paths):
-        if '_' in p.stem:
-            x, y = [int(part) for part in p.stem.replace('EFTA','').split('_')]
-            curr_nums = set(range(x, y+1))
-        else:
-            curr_nums = {int(p.stem.replace('EFTA',''))}
+        try:
+            if '_' in p.stem:
+                x, y = [int(part) for part in p.stem.replace('EFTA','').split('_')]
+                curr_nums = set(range(x, y+1))
+            else:
+                curr_nums = {int(p.stem.replace('EFTA',''))}
+        except:
+            continue # filename doesn't match EFTAXXXXXXXX.*
         if args.check_pdf:
             with open(p, 'rb') as pdf_file:
                 pdf_num_pages = len(PdfReader(pdf_file).pages)
