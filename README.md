@@ -7,3 +7,8 @@ Niema's scripts and files related to the [files released](https://www.justice.go
 * [`summary.tsv`](summary.tsv) — This is a spreadsheet summarizing all of the documents I have
 * [`url_list.txt`](url_list.txt) — This is my (potentially error-prone) complete list of document URLs based on the files I was able to successfully download
     * I created this because the pages directly on the DOJ website can be imperfect and/or difficult to enumerate completely
+
+# Helpful Links
+
+* [Department of Justice Disclosures](https://www.justice.gov/epstein/doj-disclosures)
+* [Distributed Denial of Secrets - Epstein Files](https://ddosecrets.org/article/epstein-files)
