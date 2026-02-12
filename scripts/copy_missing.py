@@ -3,6 +3,7 @@
 Make a CSV file for an Internet Archive upload
 '''
 from pathlib import Path
+from shutil import copy
 from sys import stderr
 from tqdm import tqdm
 import argparse
@@ -38,10 +39,10 @@ if __name__ == "__main__":
 
     # write copy to output
     print("Copying new files to output...")
-    for new_efta, new_path in new_paths.items():
+    for new_efta, new_path in tqdm(new_paths.items()):
         if new_efta not in existing_efta:
             destination = args.output / new_path.name
             if args.dry_run:
                 print('cp "%s" "%s"' % (new_path, destination))
             else:
-                new_path.copy(destination)
+                copy(new_path, destination)
