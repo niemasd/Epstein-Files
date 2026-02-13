@@ -1,9 +1,10 @@
 #! /usr/bin/env python3
 '''
-Make a CSV file for an Internet Archive upload
+Make a CSV file for an Internet Archive upload. Use with: ia upload --spreadsheet=upload.csv --metadata="no-derive:true" --no-derive
 '''
 from gzip import open as gopen
 from pathlib import Path
+from subprocess import check_output
 from sys import stderr
 from tqdm import tqdm
 import argparse
@@ -33,9 +34,17 @@ if __name__ == "__main__":
         else:
             out_f = open(args.output, 'wt')
 
+    # load existing files (if user has ia CLI tool)
+    print("Attempting to load existing files using 'ia list'...", file=stderr)
+    try:
+        existing = {l.strip() for l in check_output(['ia', 'list', args.meta_id]).decode().strip().splitlines()}
+    except:
+        existing = set()
+    print("Found %d existing file(s)" % len(existing), file=stderr)
+
     # enumerate files (for speed)
     print("Enumerating files in: %s" % args.directory, file=stderr)
-    paths = list(tqdm(args.directory.rglob('*.*')))
+    paths = sorted(path for path in tqdm(args.directory.rglob('*.*')) if path.name not in existing)
     print("Found %d files" % len(paths), file=stderr)
 
     # write CSV output
