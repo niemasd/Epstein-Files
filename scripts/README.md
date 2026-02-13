@@ -11,3 +11,4 @@
     * This script infers `EFTAXXXXXXXX` as the smallest EFTA number on the first page, and it infers `EFTAYYYYYYYY` as the largest EFTA number on the last page
         *  This could be incorrect, as some documents embed other documents (and thus their EFTA IDs)
         *  You can use [`missing.py`](missing.py) to check for cases where this script inferred incorrect EFTA IDs
+* [`upload_ia.py`](upload_ia.py) — Upload files to the Internet Archive
