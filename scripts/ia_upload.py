@@ -49,7 +49,9 @@ if __name__ == "__main__":
 
     # upload new files
     print("Loading file list from: %s" % args.directory, file=stderr)
-    paths = sorted(path for path in tqdm(args.directory.rglob('*.*')) if path.name not in existing)
+    paths = sorted(path for path in tqdm(args.directory.rglob('*.*'), unit='file') if path.name not in existing)
     print("Uploading %d new files..." % len(paths), file=stderr)
-    for path in tqdm(paths):
-        item.upload(files=str(path), metadata=META, checksum=True, queue_derive=False, retries=args.retries, retries_sleep=args.sleep)
+    with tqdm(paths, unit='file') as pbar:
+        for path in tqdm(paths, unit='file'):
+            pbar.set_description('Uploading: %s' % path.name)
+            item.upload(files=str(path), metadata=META, checksum=True, queue_derive=False, retries=args.retries, retries_sleep=args.sleep)
