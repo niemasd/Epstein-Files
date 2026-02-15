@@ -48,7 +48,9 @@ if __name__ == "__main__":
     print("Found %d existing file(s)" % len(existing), file=stderr)
 
     # upload new files
-    print("Uploading files from: %s" % args.directory, file=stderr)
-    for path in tqdm(list(args.directory.rglob('*.*'))):
+    print("Loading file list from: %s" % args.directory, file=stderr)
+    paths = list(tqdm(args.directory.rglob('*.*')))
+    print("Uploading %d files..." % len(paths), file=stderr)
+    for path in tqdm(paths):
         if path.name not in existing:
             item.upload(files=str(path), metadata=META, checksum=True, queue_derive=False, retries=args.retries, retries_sleep=args.sleep)
