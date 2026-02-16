@@ -20,7 +20,11 @@ META = {
 
 # upload a single file
 def upload(path):
-    item.upload(files=str(path), metadata=META, checksum=True, queue_derive=False, retries=100, retries_sleep=30)
+    while True:
+        response = item.upload(files=str(path), metadata=META, checksum=True, queue_derive=False, retries=100, retries_sleep=30)[0]
+        if response.status_code == 200:
+            return
+        wait(30)
 
 # run script
 if __name__ == "__main__":
