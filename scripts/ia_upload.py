@@ -9,6 +9,7 @@ from multiprocessing import Pool
 from pathlib import Path
 from subprocess import check_output
 from sys import stderr
+from time import sleep
 from tqdm import tqdm
 import argparse
 
@@ -24,7 +25,7 @@ def upload(path):
         response = item.upload(files=str(path), metadata=META, checksum=True, queue_derive=False, retries=100, retries_sleep=30)[0]
         if response.status_code == 200:
             return
-        wait(30)
+        sleep(30)
 
 # run script
 if __name__ == "__main__":
