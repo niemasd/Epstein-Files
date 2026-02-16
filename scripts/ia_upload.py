@@ -64,4 +64,4 @@ if __name__ == "__main__":
                 with Pool(processes=args.threads) as pool:
                     pool.map(upload, buffer)
                 buffer = [None] * args.threads
-            buffer_ind = 0
+                buffer_ind = 0
