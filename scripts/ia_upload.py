@@ -55,11 +55,13 @@ if __name__ == "__main__":
     print("Uploading %d new files..." % len(paths), file=stderr)
     buffer = [None] * args.threads
     buffer_ind = 0
-    for path in tqdm(paths, unit='file'):
-        buffer[buffer_ind] = path
-        buffer_ind += 1
-        if buffer_ind == len(buffer):
-            with Pool(processes=args.threads) as pool:
-                pool.map(upload, buffer)
-            buffer = [None] * args.threads
+    with tqdm(paths, unit='file') as pbar:
+        for path in pbar:
+            buffer[buffer_ind] = path
+            buffer_ind += 1
+            if buffer_ind == len(buffer):
+                pbar.set_description(path.name)
+                with Pool(processes=args.threads) as pool:
+                    pool.map(upload, buffer)
+                buffer = [None] * args.threads
             buffer_ind = 0
