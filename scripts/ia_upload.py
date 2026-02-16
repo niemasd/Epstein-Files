@@ -5,6 +5,7 @@ Upload files to the Internet Archive. I suggest initializing an Internet Archive
 
 # imports
 from internetarchive import get_session
+from multiprocessing import Pool
 from pathlib import Path
 from subprocess import check_output
 from sys import stderr
@@ -17,6 +18,10 @@ META = {
     'no-derive': 'true',
 }
 
+# upload a single file
+def upload(path):
+    item.upload(files=str(path), metadata=META, checksum=True, queue_derive=False, retries=100, retries_sleep=30)
+
 # run script
 if __name__ == "__main__":
     # parse user args
@@ -24,8 +29,7 @@ if __name__ == "__main__":
     parser.add_argument('-d', '--directory', required=True, type=str, help="File Directory")
     parser.add_argument('-c', '--config', required=False, type=str, default="~/.config/internetarchive/ia.ini", help="Internet Archive CLI Config File")
     parser.add_argument('-i', '--id', required=False, type=str, default='efta_niema', help="Internet Archive Item ID")
-    parser.add_argument('-r', '--retries', required=False, type=int, default=100, help="Number of Retries on Failed Upload")
-    parser.add_argument('-s', '--sleep', required=False, type=int, default=30, help="Amount of Time to Sleep Between Retries")
+    parser.add_argument('-t', '--threads', required=False, type=int, default=8, help="Number of Parallel Uploads")
     args = parser.parse_args()
     args.directory = Path(args.directory).expanduser()
     if not args.directory.is_dir():
@@ -33,10 +37,8 @@ if __name__ == "__main__":
     args.config = Path(args.config).expanduser()
     if not args.config.is_file():
         print("File not found: %s" % args.config, file=stderr); exit(1)
-    if args.retries < 0:
-        print("Number of retries must be non-negative: %s" % args.retries, file=stderr); exit(1)
-    if args.sleep < 1:
-        print("Sleep time must be positive: %s" % args.sleep, file=stderr); exit(1)
+    if args.threads < 1:
+        print("Number of threads must be positive: %d" % args.threads, file=stderr); exit(1)
 
     # set up Internet Archive session
     print("Initializing Internet Archive session using: %s" % args.config, file=stderr)
@@ -51,7 +53,13 @@ if __name__ == "__main__":
     print("Loading file list from: %s" % args.directory, file=stderr)
     paths = sorted(path for path in tqdm(args.directory.rglob('*.*'), unit='file') if path.name not in existing)
     print("Uploading %d new files..." % len(paths), file=stderr)
-    with tqdm(paths, unit='file') as pbar:
-        for path in tqdm(paths, unit='file'):
-            pbar.set_description('Uploading: %s' % path.name)
-            item.upload(files=str(path), metadata=META, checksum=True, queue_derive=False, retries=args.retries, retries_sleep=args.sleep)
+    buffer = [None] * args.threads
+    buffer_ind = 0
+    for path in tqdm(paths, unit='file'):
+        buffer[buffer_ind] = path
+        buffer_ind += 1
+        if buffer_ind == len(buffer):
+            with Pool(processes=args.threads) as pool:
+                pool.map(upload, buffer)
+            buffer = [None] * args.threads
+            buffer_ind = 0
