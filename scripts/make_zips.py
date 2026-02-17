@@ -5,7 +5,7 @@ Make ZIP files for each dataset release
 from pathlib import Path
 from sys import argv, stderr
 from tqdm import tqdm
-from zipfile import ZipFile
+from zipfile import ZIP_DEFLATED, ZipFile
 BOUNDS = [
     ( '1', 'EFTA00000001', 'EFTA00003158'), # https://www.justice.gov/epstein/doj-disclosures/data-set-1-files
     ( '2', 'EFTA00003159', 'EFTA00003857'), # https://www.justice.gov/epstein/doj-disclosures/data-set-2-files
@@ -38,7 +38,7 @@ if __name__ == "__main__":
         if path.exists():
             raise ValueError("Output ZIP exists: %s" % path)
     print("Initializing ZIP files in output: %s" % out_path, file=stderr)
-    zips = {k : ZipFile(path, 'w') for k, path in zip_paths.items()}
+    zips = {k : ZipFile(path, mode='w', compression=ZIP_DEFLATED, allowZip64=True, compresslevel=9) for k, path in zip_paths.items()}
 
     # enumerate files
     print("Enumerating files from: %s" % dir_path, file=stderr)
