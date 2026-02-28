@@ -4,6 +4,8 @@ Niema's scripts and files related to the [files released](https://www.justice.go
 * [`scripts/`](scripts) — This directory contains scripts I wrote to help me automate various tasks related to downloading and organizing the files
 * [`missing.txt`](missing.txt) — This is a list of document EFTA IDs I believe I'm missing
     * It assumes that all positive integers between 1 and the maximum EFTA number exist
+* [`missing_media.txt`](missing_media.txt) — This is a list of media files that should exist (i.e., they have an accompanying `EFTA########.pdf` file that is 2433 bytes and says "No Images Produced
+") but that I'm missing
 * [`summary.tsv`](summary.tsv) — This is a spreadsheet summarizing all of the documents I have
     * Files named `EFTAXXXXXXXX_EFTAYYYYYYYY.pdf` were originally named `EFTAXXXXXXXX.pdf`, where `EFTAXXXXXXXX` is the EFTA ID of the first page in the PDF
         * I renamed them to `EFTAXXXXXXXX_EFTAYYYYYYYY.pdf`, where `EFTAYYYYYYYY` is the EFTA ID of the last page in the PDF, to make it easier to track what EFTA IDs exist vs. are missing
