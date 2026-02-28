@@ -13,14 +13,15 @@ if __name__ == "__main__":
     # parse user args
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d', '--pdf_dir', required=True, type=str, help="EFTA PDF Directory")
-    parser.add_argument('-s', '--size_threshold', required=False, type=int, default=3000, help="PDF Check Size Threshold")
-    parser.add_argument('-t', '--text', required=False, type=str, default="No Images Produced", help="Text to Search For")
+    parser.add_argument('-s', '--min_size', required=False, type=int, default=2433, help="Minimum PDF Size")
+    parser.add_argument('-S', '--max_size', required=False, type=int, default=2433, help="Maximum PDF Size")
+    parser.add_argument('-t', '--text', required=False, type=str, default="No Images Produced", help="Text to Search For (empty string to skip)")
     parser.add_argument('-o', '--output', required=False, type=str, default='stdout', help="Output File")
     args = parser.parse_args()
     args.pdf_dir = Path(args.pdf_dir)
     if not args.pdf_dir.is_dir():
         raise ValueError("Directory not found: %s" % args.pdf_dir)
-    query = args.text.strip().lower()
+    args.text = args.text.strip().lower()
     if args.output == 'stdout':
         args.output = stdout
     else:
@@ -29,8 +30,11 @@ if __name__ == "__main__":
     # find missing multimedia files
     print("Scanning EFTA PDF files in: %s" % args.pdf_dir, file=stderr)
     for pdf_path in tqdm(sorted(args.pdf_dir.rglob('EFTA*.pdf'))):
-        if ('_' not in pdf_path.name) and (pdf_path.stat().st_size <= args.size_threshold):
-            with open(pdf_path, 'rb') as f:
-                if (query in PdfReader(f).pages[0].extract_text().lower()) and (len(list(pdf_path.parent.rglob('%s*' % pdf_path.stem))) == 1):
-                    print(pdf_path.stem, file=args.output)
+        if ('_' not in pdf_path.name) and (args.min_size <= pdf_path.stat().st_size <= args.max_size):
+            if args.text == '':
+                print(pdf_path.stem, file=args.output)
+            else:
+                with open(pdf_path, 'rb') as f:
+                    if (args.text in PdfReader(f).pages[0].extract_text().lower()) and (len(list(pdf_path.parent.rglob('%s*' % pdf_path.stem))) == 1):
+                        print(pdf_path.stem, file=args.output)
     args.output.close()
