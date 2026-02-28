@@ -20,20 +20,31 @@ BOUNDS = [
     ('11', 'EFTA02212883', 'EFTA02730264'), # https://www.justice.gov/epstein/doj-disclosures/data-set-11-files
     ('12', 'EFTA02730265', 'EFTA02731860'), # https://www.justice.gov/epstein/doj-disclosures/data-set-12-files
 ]
+DATASET_NUMS = {k for k, start, end in BOUNDS}
 
 # run script
 if __name__ == "__main__":
     # parse user args
-    if len(argv) != 3:
-        print("USAGE: %s <efta_dir> <out_dir>" % argv[0], file=stderr); exit(1)
+    if len(argv) not in {3,4}:
+        print("USAGE: %s <efta_dir> <out_dir> [dataset_num]" % argv[0], file=stderr); exit(1)
     dir_path = Path(argv[1])
     out_path = Path(argv[2])
     for path in [dir_path, out_path]:
         if not path.is_dir():
             raise ValueError("Directory not found: %s" % path)
+    if len(argv) == 4:
+        dataset_num = argv[3].strip()
+        if dataset_num not in DATASET_NUMS:
+            raise ValueError("Invalid Data Set number: %s" % dataset_num)
+    else:
+        dataset_num = None
 
     # initialize zips
-    zip_paths = {k : (out_path / ('Data Set %s.zip' % k)) for k, start, end in BOUNDS + [(None,None,None)]}
+    if dataset_num is None:
+        zip_paths = {k : (out_path / ('Data Set %s.zip' % k)) for k, start, end in BOUNDS + [(None,None,None)]}
+    else:
+        BOUNDS = [tup for tup in BOUNDS if tup[0] == dataset_num]
+        zip_paths = {dataset_num : (out_path / ('Data Set %s.zip' % dataset_num))}
     for path in zip_paths.values():
         if path.exists():
             raise ValueError("Output ZIP exists: %s" % path)
@@ -47,14 +58,13 @@ if __name__ == "__main__":
     # compress files
     print("Creating ZIPs...", file=stderr)
     for path in tqdm(paths, unit='file'):
-        name_upper = path.name.upper().strip()
-        if name_upper.startswith('EFTA'):
-            for k, start, end in BOUNDS:
-                if start <= name_upper <= end:
-                    break
-        else:
-            k = None
-        zips[k].write(path, arcname=path.name)
+        efta_upper = path.stem.split('_')[0].upper().strip()
+        k = None
+        for curr_k, start, end in BOUNDS:
+            if start <= efta_upper <= end:
+                k = curr_k; break
+        if k in zips:
+            zips[k].write(path, arcname=path.name)
 
     # close zips
     for curr_zip in zips.values():
