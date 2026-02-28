@@ -18,11 +18,12 @@ META = {
     'noarchivetorrent': 'true',
     'no-derive': 'true',
 }
+NUM_ZIPS = 13 # number of ZIP files `make_zips.py` produces
 
 # upload a single file
-def upload(path):
+def upload(path, verbose=False):
     while True:
-        response = item.upload(files=str(path), metadata=META, checksum=True, queue_derive=False, retries=100, retries_sleep=30)[0]
+        response = item.upload(files=str(path), metadata=META, checksum=True, queue_derive=False, retries=100, retries_sleep=30, verbose=verbose)[0]
         if response.status_code == 200:
             return
         sleep(30)
@@ -33,8 +34,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-d', '--directory', required=True, type=str, help="File Directory")
     parser.add_argument('-c', '--config', required=False, type=str, default="~/.config/internetarchive/ia.ini", help="Internet Archive CLI Config File")
-    parser.add_argument('-i', '--id', required=False, type=str, default='efta_niema', help="Internet Archive Item ID")
-    parser.add_argument('-t', '--threads', required=False, type=int, default=8, help="Number of Parallel Uploads")
+    parser.add_argument('-i', '--id', required=False, type=str, default='efta_niema_zip', help="Internet Archive Item ID")
+    parser.add_argument('-t', '--threads', required=False, type=int, default=NUM_ZIPS, help="Number of Parallel Uploads")
     args = parser.parse_args()
     args.directory = Path(args.directory).expanduser()
     if not args.directory.is_dir():
@@ -58,15 +59,19 @@ if __name__ == "__main__":
     print("Loading file list from: %s" % args.directory, file=stderr)
     paths = sorted(path for path in tqdm(args.directory.rglob('*.*'), unit='file') if path.name not in existing)
     print("Uploading %d new files..." % len(paths), file=stderr)
-    buffer = [None] * args.threads
-    buffer_ind = 0
-    with tqdm(paths, unit='file') as pbar:
-        for path in pbar:
-            buffer[buffer_ind] = path
-            buffer_ind += 1
-            if buffer_ind == len(buffer):
-                pbar.set_description(path.name)
-                with Pool(processes=args.threads) as pool:
-                    pool.map(upload, buffer)
-                buffer = [None] * args.threads
-                buffer_ind = 0
+    if args.threads == 1:
+        for path in paths:
+            upload(path, verbose=True)
+    else:
+        buffer = [None] * args.threads
+        buffer_ind = 0
+        with tqdm(paths, unit='file') as pbar:
+            for path in pbar:
+                buffer[buffer_ind] = path
+                buffer_ind += 1
+                if buffer_ind == len(buffer):
+                    pbar.set_description(path.name)
+                    with Pool(processes=args.threads) as pool:
+                        pool.map(upload, buffer)
+                    buffer = [None] * args.threads
+                    buffer_ind = 0
