@@ -19,3 +19,4 @@ Niema's scripts and files related to the [files released](https://www.justice.go
 * [Dataset 9 EFTA Gap Repair](https://archive.org/details/ds-9-efta-gap-repair)
 * [Department of Justice Disclosures](https://www.justice.gov/epstein/doj-disclosures)
 * [Distributed Denial of Secrets - Epstein Files](https://ddosecrets.org/article/epstein-files)
+* [List of Non-PDF Files](https://pastebin.com/CdCVpKtc)
