@@ -22,20 +22,45 @@ if __name__ == "__main__":
     if not args.pdf_dir.is_dir():
         raise ValueError("Directory not found: %s" % args.pdf_dir)
     args.text = args.text.strip().lower()
+
+    # enumerate all EFTA files
+    print("Enumerating EFTA files in: %s" % args.pdf_dir, file=stderr)
+    efta_files = list(tqdm(args.pdf_dir.rglob('EFTA*.pdf')))
+
+    # count EFTA IDs
+    print("Counting EFTA IDs for single-page PDFs...", file=stderr)
+    count = dict()
+    for path in tqdm(efta_files):
+        if '_' not in path.name:
+            efta_ID = path.stem.strip().upper()
+            if efta_ID not in count:
+                count[efta_ID] = 0
+            count[efta_ID] += 1
+
+    # find missing multimedia files
+    print("Searching for missing multimedia files...", file=stderr)
+    missing = list()
+    for path in tqdm(efta_files):
+        if '_' in path.name or path.suffix.strip().lower() != '.pdf':
+            continue
+        efta_ID = path.stem.strip().upper()
+        if count[efta_ID] != 1:
+            continue
+        size = path.stat().st_size
+        if size < args.min_size or size > args.max_size:
+            continue
+        if args.text != '':
+            with open(path, 'rb') as f:
+                if args.text not in PdfReader(f).pages[0].extract_text().lower():
+                    continue
+        missing.append(path.stem)
+
+    # write output to file
+    print("Writing %d missing multimedia files to: %s" % (args.output, len(missing)))
+    missing.sort()
     if args.output == 'stdout':
         args.output = stdout
     else:
         args.output = open(args.output, 'wt')
-
-    # find missing multimedia files
-    print("Scanning EFTA PDF files in: %s" % args.pdf_dir, file=stderr)
-    for pdf_path in tqdm(sorted(args.pdf_dir.rglob('EFTA*.pdf'))):
-        if ('_' not in pdf_path.name) and (args.min_size <= pdf_path.stat().st_size <= args.max_size):
-            if args.text == '':
-                check_text = True # skip text check
-            else:
-                with open(pdf_path, 'rb') as f:
-                    check_text = (args.text in PdfReader(f).pages[0].extract_text().lower())
-            if check_text:
-                print(pdf_path.stem, file=args.output)
+    args.output.write('%s\n' % '\n'.join(missing))
     args.output.close()
