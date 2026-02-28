@@ -32,9 +32,10 @@ if __name__ == "__main__":
     for pdf_path in tqdm(sorted(args.pdf_dir.rglob('EFTA*.pdf'))):
         if ('_' not in pdf_path.name) and (args.min_size <= pdf_path.stat().st_size <= args.max_size):
             if args.text == '':
-                print(pdf_path.stem, file=args.output)
+                check_text = True # skip text check
             else:
                 with open(pdf_path, 'rb') as f:
-                    if (args.text in PdfReader(f).pages[0].extract_text().lower()) and (len(list(pdf_path.parent.rglob('%s*' % pdf_path.stem))) == 1):
-                        print(pdf_path.stem, file=args.output)
+                    check_text = (args.text in PdfReader(f).pages[0].extract_text().lower())
+            if check_text:
+                print(pdf_path.stem, file=args.output)
     args.output.close()
