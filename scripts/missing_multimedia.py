@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     # enumerate all EFTA files
     print("Enumerating EFTA files in: %s" % args.pdf_dir, file=stderr)
-    efta_files = list(tqdm(args.pdf_dir.rglob('EFTA*.pdf')))
+    efta_files = list(tqdm(args.pdf_dir.rglob('EFTA*.*')))
 
     # count EFTA IDs
     print("Counting EFTA IDs for single-page PDFs...", file=stderr)
