@@ -56,7 +56,7 @@ if __name__ == "__main__":
         missing.append(path.stem)
 
     # write output to file
-    print("Writing %d missing multimedia files to: %s" % (args.output, len(missing)))
+    print("Writing %d missing multimedia files to: %s" % (len(missing), args.output))
     missing.sort()
     if args.output == 'stdout':
         args.output = stdout
