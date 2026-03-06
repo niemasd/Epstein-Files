@@ -18,7 +18,7 @@ BOUNDS = [
     ( '9', 'EFTA00039025', 'EFTA01262781'), # https://www.justice.gov/epstein/doj-disclosures/data-set-9-files
     ('10', 'EFTA01262782', 'EFTA02212882'), # https://www.justice.gov/epstein/doj-disclosures/data-set-10-files
     ('11', 'EFTA02212883', 'EFTA02730264'), # https://www.justice.gov/epstein/doj-disclosures/data-set-11-files
-    ('12', 'EFTA02730265', 'EFTA02731860'), # https://www.justice.gov/epstein/doj-disclosures/data-set-12-files
+    ('12', 'EFTA02730265', 'EFTA02858498'), # https://www.justice.gov/epstein/doj-disclosures/data-set-12-files
 ]
 DATASET_NUMS = {k for k, start, end in BOUNDS}
 
